@@ -14,6 +14,32 @@ export const Chat = () => {
   const speechSynthesisRef = useRef(null);
   const inputRef = useRef(null);
 
+  // helper to send a message programmatically (used by voice capture)
+  const sendMessage = async (message) => {
+    if (!message || message.trim() === "") return;
+    setLoading(true);
+    const userMessage = message.trim();
+    try {
+      const response = await axios.post(
+        "http://localhost:3001/api/chatgpt",
+        { message: userMessage },
+        { headers: { "Content-Type": "application/json" } }
+      );
+      const generatedText = response.data.response;
+      setChatHistory((prev) => [...prev, { user: userMessage, bot: generatedText }]);
+      setUserInput("");
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    } catch (error) {
+      console.error("Error:", error);
+      const errorMessage = error.response?.data?.error || error.message || "Failed to connect to the server.";
+      setChatHistory((prev) => [...prev, { user: userMessage, bot: `Error: ${errorMessage}` }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Keyboard shortcut to open chat (press 'C' key)
   useEffect(() => {
     const handleKeyPress = (event) => {
@@ -52,12 +78,15 @@ export const Chat = () => {
       console.error("Speech recognition is not supported in this browser.");
       return;
     }
-
     const recognition = new SpeechRecognition();
-    recognition.lang = "en";
-    recognition.continuous = true;
+    recognition.lang = "en-US";
+    // non-continuous mode so it ends after user stops speaking
+    recognition.continuous = false;
     recognition.interimResults = true;
     recognitionRef.current = recognition;
+
+    // store last final transcript so onend can access it
+    const lastFinal = { text: "" };
 
     recognition.onresult = (event) => {
       let interimTranscript = "";
@@ -72,7 +101,11 @@ export const Chat = () => {
         }
       }
 
-      setUserInput(finalTranscript);
+      // show interim while speaking, but keep final saved
+      setUserInput((interimTranscript || finalTranscript || "").trim());
+      if (finalTranscript.trim() !== "") {
+        lastFinal.text = finalTranscript.trim();
+      }
     };
 
     recognition.onerror = (event) => {
@@ -82,8 +115,9 @@ export const Chat = () => {
 
     recognition.onend = () => {
       setIsListening(false);
-      if (userInput.trim() !== "") {
-        handleSubmit(new Event("submit"));
+      // if there was a final transcript, send it
+      if (lastFinal.text && lastFinal.text.trim() !== "") {
+        sendMessage(lastFinal.text.trim());
       }
     };
 
