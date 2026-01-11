@@ -1,0 +1,54 @@
+.walking-instructions {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2000;
+  pointer-events: none;
+}
+
+.instructions-content {
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 30px 40px;
+  border-radius: 15px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  max-width: 400px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.instructions-content h3 {
+  margin: 0 0 15px 0;
+  font-size: 24px;
+  color: #4A90E2;
+}
+
+.instructions-content p {
+  margin: 0 0 20px 0;
+  font-size: 16px;
+  color: #FFD700;
+}
+
+.controls-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+  margin-top: 15px;
+}
+
+.controls-list div {
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.controls-list strong {
+  color: #4A90E2;
+  margin-right: 10px;
+  display: inline-block;
+  min-width: 80px;
+}
